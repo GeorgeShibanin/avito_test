@@ -5,9 +5,10 @@ type UserInfo struct {
 	Balance int64
 }
 
-type DealInfo struct {
+type Order struct {
 	IdUser    string
 	IdService string
 	IdOrder   string
 	Cost      int64
+	Accepted  bool
 }

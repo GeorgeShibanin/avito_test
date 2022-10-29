@@ -26,7 +26,9 @@ func NewServer() *http.Server {
 
 	handler := handlers.NewHTTPHandler(store)
 	r.HandleFunc("/balance", handler.HandleGetBalance).Methods(http.MethodGet)
-	r.HandleFunc("/user/put", handler.HandlePutBalance).Methods(http.MethodPost)
+	r.HandleFunc("/addbalance", handler.HandlePutBalance).Methods(http.MethodPost)
+	r.HandleFunc("/reserve", handler.HandlePostReserve).Methods(http.MethodPost)
+	r.HandleFunc("/reserve/accept", handler.HandlePatchAcceptReserve).Methods(http.MethodPatch)
 
 	return &http.Server{
 		Handler:      r,
