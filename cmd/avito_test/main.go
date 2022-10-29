@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"githib.com/GeorgeShibanin/avito_test/internal/config"
-	"githib.com/GeorgeShibanin/avito_test/internal/handlers"
-	"githib.com/GeorgeShibanin/avito_test/internal/storage"
-	"githib.com/GeorgeShibanin/avito_test/internal/storage/postgres"
+	"github.com/GeorgeShibanin/avito_test/internal/config"
+	"github.com/GeorgeShibanin/avito_test/internal/handlers"
+	"github.com/GeorgeShibanin/avito_test/internal/storage"
+	"github.com/GeorgeShibanin/avito_test/internal/storage/postgres"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -25,8 +25,8 @@ func NewServer() *http.Server {
 	store = initPostgres()
 
 	handler := handlers.NewHTTPHandler(store)
-	r.HandleFunc("/user/balance", handler.HandleGetBalance).Methods(http.MethodGet)
-	r.HandleFunc("/user/put", handler.HandlePutBalance)
+	r.HandleFunc("/balance", handler.HandleGetBalance).Methods(http.MethodGet)
+	r.HandleFunc("/user/put", handler.HandlePutBalance).Methods(http.MethodPost)
 
 	return &http.Server{
 		Handler:      r,

@@ -1,6 +1,6 @@
 CREATE TABLE users  (
      id text primary key,
-     balance int,
+     balance int
 );
 
 CREATE TABLE orders (

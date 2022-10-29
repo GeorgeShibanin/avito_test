@@ -13,3 +13,13 @@ func NewHTTPHandler(storage storage.Storage) *HTTPHandler {
 		storage: storage,
 	}
 }
+
+type PostUserBalance struct {
+	Id      string `json:"id"`
+	Balance int64  `json:"balance"`
+}
+
+type ResponseUserInfo struct {
+	Id      string `json:"id"`
+	Balance int64  `json:"balance"`
+}
