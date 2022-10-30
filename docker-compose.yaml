@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  app:
+    build: .
+    ports:
+      - '8080:8080'
+    container_name: avito_test
+    environment:
+      POSTRGES_DBNAME: 'postgres'
+    #      DATABASE_URL: 'postgres://postgres:5432/postgres'
+    depends_on:
+      - database
+    command: [ "/go/src/avito_test/scripts/wait-for-it.sh", "database:5432", "--", "/go/src/avito_test/bin/avito_test" ]
+
+  database:
+    image: postgres:latest
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'postgres'
+      POSTGRES_DB: 'balancedb'
+    volumes:
+      - './_sql/:/docker-entrypoint-initdb.d/'

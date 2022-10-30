@@ -21,11 +21,12 @@ func (h *HTTPHandler) HandlePatchAcceptReserve(rw http.ResponseWriter, r *http.R
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	response := ResponseOrder{
+	response := ResponseAcceptedOrder{
 		Id:        reserve.IdUser,
 		IdServise: reserve.IdServise,
 		IdOrder:   reserve.IdOrder,
 		Amount:    reserve.Amount,
+		Accepted:  true,
 	}
 	rawResponse, err := json.Marshal(response)
 	if err != nil {

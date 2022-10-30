@@ -1,3 +1,7 @@
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS report;
+
 CREATE TABLE users  (
      id text primary key,
      balance int

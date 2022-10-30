@@ -50,6 +50,7 @@ type ResponseAcceptedOrder struct {
 	IdServise string `json:"id_servise"`
 	IdOrder   string `json:"id_order"`
 	Amount    int64  `json:"reserved_balance"`
+	Accepted  bool   `json:"accepted"`
 }
 
 type ResponseOrder struct {
