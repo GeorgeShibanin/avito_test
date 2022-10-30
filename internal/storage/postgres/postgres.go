@@ -24,6 +24,8 @@ const (
 							RETURNING id_user, id_service, id_order, amount, accepted`
 	UpdateReserveAcceptance = `UPDATE orders SET accepted = $1 WHERE id_user = $2 AND id_service = $3 AND id_order = $4 AND amount = $5
 							RETURNING id_user, id_service, id_order, amount, accepted`
+	DeleteReserve = `DELETE FROM orders WHERE id_user = $1 AND id_service = $2 AND id_order = $3 AND amount = $4
+						RETURNING id_order, accepted`
 
 	InsertReport = `INSERT INTO report (id_user, id_service, id_order, amount, accepted_at)
 						VALUES($1, $2, $3, $4, $5)
@@ -213,4 +215,33 @@ func (s *StoragePostgres) GetReport(ctx context.Context, date1 storage.Date, dat
 		allDeals = append(allDeals, *deals)
 	}
 	return allDeals, nil
+}
+
+func (s *StoragePostgres) DeleteReserve(ctx context.Context, id storage.Id, service storage.IdServise, order storage.IdOrder, amount storage.Amout) (string, error) {
+	tx, err := s.conn.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return " storage.Item{}", errors.Wrap(err, "can't create tx")
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback(ctx)
+		} else {
+			tx.Commit(ctx)
+		}
+	}()
+	idOrder := storage.IdOrder("")
+	acceptance := false
+	err = tx.QueryRow(ctx, DeleteReserve, id, service, order, amount).Scan(&idOrder, &acceptance)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", fmt.Errorf("item not exist - %w", storage.StorageError)
+		}
+		return "", fmt.Errorf("cant delete item - %w", err)
+	}
+	if acceptance == true {
+		return "", storage.ErrAlreadyAccepted
+	}
+
+	s.PutBalance(ctx, id, storage.Balance(amount))
+	return string(idOrder), nil
 }

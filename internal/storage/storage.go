@@ -14,6 +14,7 @@ var (
 	ReserveAlreadyExist = errors.New("Reserve with such order id already exist")
 	ErrNotFound         = fmt.Errorf("%w.not_found", StorageError)
 	ErrWrongBalance     = errors.New("wrong balance")
+	ErrAlreadyAccepted  = errors.New("error already accepted")
 )
 
 type Id string
@@ -44,7 +45,10 @@ type Deals struct {
 type Storage interface {
 	PutBalance(ctx context.Context, id Id, balance Balance) (UserInfo, error)
 	GetBalance(ctx context.Context, id Id) (UserInfo, error)
+
 	PutReserve(ctx context.Context, id Id, servise IdServise, order IdOrder, amout Amout) (Order, int64, error)
 	PatchReserve(ctx context.Context, id Id, servise IdServise, order IdOrder, amout Amout) (Order, error)
+	DeleteReserve(ctx context.Context, id Id, servise IdServise, order IdOrder, amout Amout) (string, error)
+
 	GetReport(ctx context.Context, date1 Date, date2 Date) ([]Deals, error)
 }
