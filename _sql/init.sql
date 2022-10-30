@@ -19,7 +19,7 @@ CREATE TABLE report (
      id_order text,
      amount int,
      accepted_at date,
-     primary key (id_user, id_service, id_order),
+     primary key (id_service),
      foreign key (id_order) references orders (id_order)
 );
 

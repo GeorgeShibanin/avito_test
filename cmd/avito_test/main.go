@@ -29,7 +29,7 @@ func NewServer() *http.Server {
 	r.HandleFunc("/addbalance", handler.HandlePutBalance).Methods(http.MethodPost)
 	r.HandleFunc("/reserve", handler.HandlePostReserve).Methods(http.MethodPost)
 	r.HandleFunc("/reserve/accept", handler.HandlePatchAcceptReserve).Methods(http.MethodPatch)
-
+	r.HandleFunc("/report", handler.HandleGetReport).Methods(http.MethodGet)
 	return &http.Server{
 		Handler:      r,
 		Addr:         ":8080",

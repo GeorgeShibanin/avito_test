@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 )
 
 var (
@@ -20,6 +21,7 @@ type Balance int64
 type IdServise string
 type IdOrder string
 type Amout int64
+type Date time.Time
 
 type UserInfo struct {
 	Id      string `json:"id"`
@@ -34,9 +36,15 @@ type Order struct {
 	Accepted  bool   `json:"accepted"`
 }
 
+type Deals struct {
+	IdServise string `json:"idServise"`
+	TotalSumm int    `json:"totalSumm"`
+}
+
 type Storage interface {
 	PutBalance(ctx context.Context, id Id, balance Balance) (UserInfo, error)
 	GetBalance(ctx context.Context, id Id) (UserInfo, error)
 	PutReserve(ctx context.Context, id Id, servise IdServise, order IdOrder, amout Amout) (Order, int64, error)
 	PatchReserve(ctx context.Context, id Id, servise IdServise, order IdOrder, amout Amout) (Order, error)
+	GetReport(ctx context.Context, date1 Date, date2 Date) ([]Deals, error)
 }

@@ -11,33 +11,43 @@ import (
 )
 
 const (
+	dsnTemplate = "postgres://%s:%s@%s:%v/%s"
+
 	GetBalanceById = `SELECT id, balance FROM users WHERE id = $1`
 	PatchBalance   = `UPDATE users SET balance = $1 WHERE id = $2
 						RETURNING id, balance`
 	InsertNewUser = `INSERT INTO users (id, balance) VALUES ($1, $2)
 						RETURNING id, balance`
 
-	dsnTemplate = "postgres://%s:%s@%s:%v/%s"
-
 	GetReserveByOrderId = `SELECT id_user FROM orders WHERE id_order = $1`
 	InsertNewReserve    = `INSERT INTO orders (id_user, id_service, id_order, amount, accepted) VALUES ($1, $2, $3, $4, $5)
 							RETURNING id_user, id_service, id_order, amount, accepted`
 	UpdateReserveAcceptance = `UPDATE orders SET accepted = $1 WHERE id_user = $2 AND id_service = $3 AND id_order = $4 AND amount = $5
 							RETURNING id_user, id_service, id_order, amount, accepted`
+
 	InsertReport = `INSERT INTO report (id_user, id_service, id_order, amount, accepted_at)
 						VALUES($1, $2, $3, $4, $5)
 						RETURNING id_user`
+	GetReport = `SELECT id_service, SUM(amount) FROM report WHERE accepted_at >= $1 AND accepted_at <= $2 GROUP BY id_service;`
 )
 
+type CommandTag string
+
 type StoragePostgres struct {
-	conn *pgx.Conn
+	conn postgresInterface
 }
 
-func initConnection(conn *pgx.Conn) *StoragePostgres {
+type postgresInterface interface {
+	BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error)
+	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
+}
+
+func initConnection(conn postgresInterface) *StoragePostgres {
 	return &StoragePostgres{conn: conn}
 }
 
 func Init(ctx context.Context, host, user, db, password string, port uint16) (*StoragePostgres, error) {
+	//подключение к базе через переменные окружения
 	conn, err := pgx.Connect(ctx, fmt.Sprintf(dsnTemplate, user, password, host, port, db))
 	if err != nil {
 		return nil, errors.Wrap(err, "can't connect to postgres")
@@ -165,6 +175,7 @@ func (s *StoragePostgres) PatchReserve(ctx context.Context, id storage.Id, servi
 		}
 		return storage.Order{}, fmt.Errorf("error while accept reserve - %w", err)
 	}
+
 	//Add accepted reserve to report
 	userId := storage.Id("")
 	err = tx.QueryRow(ctx, InsertReport, id, service, order, amount, time.Now().UTC().Format(time.RFC3339)).Scan(&userId)
@@ -173,4 +184,33 @@ func (s *StoragePostgres) PatchReserve(ctx context.Context, id storage.Id, servi
 		return storage.Order{}, err
 	}
 	return *reserve, nil
+}
+
+func (s *StoragePostgres) GetReport(ctx context.Context, date1 storage.Date, date2 storage.Date) ([]storage.Deals, error) {
+	tx, err := s.conn.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return []storage.Deals{}, errors.Wrap(err, "can't create tx")
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback(ctx)
+		} else {
+			tx.Commit(ctx)
+		}
+	}()
+	deals := &storage.Deals{}
+	allDeals := []storage.Deals{}
+	rows, err := tx.Query(ctx, GetReport, date1, date2)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return []storage.Deals{}, fmt.Errorf("Such reports does not exist - %w", storage.StorageError)
+		}
+		return []storage.Deals{}, fmt.Errorf("Error while Searching for dates", err)
+	}
+	for rows.Next() {
+		err = rows.Scan(&deals.IdServise, &deals.TotalSumm)
+		log.Println(deals)
+		allDeals = append(allDeals, *deals)
+	}
+	return allDeals, nil
 }
