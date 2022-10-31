@@ -49,27 +49,27 @@ docker-compose up --build
     ```
   Ответ:
     ```
-      {"id":"George","balance":1500,"id_servise":"","id_order":"1","reserved_balance":500}
+      {"id":"George","balance":1500,"id_servise":"1","id_order":"1","reserved_balance":500}
     ```
 
 - Пример Delete reserve: Метод отмены сделки(удаления из таблицы) и зачисления средств обратно на счёт пользователя. Если сделка уже accepted=true, то такую сделку нельзя удалить
     ```
-      curl -X DELETE http://localhost:8080/reserve/cancel?id=George&id_servise=1&id_order=2&amount=500
+      curl -X DELETE http://localhost:8080/reserve/cancel?id=George&id_servise=1&id_order=1&amount=500
 
     ```
   Ответ:
     ```
-      {"id":"George","balance":1500,"id_servise":"","id_order":"1","reserved_balance":500}
+      "1" this order deleted
     ```
 
-- Пример Get Report: Метод получения отчёта по услугам за определённый период (Если делать запрос через url браузера, то будет видна загрузка файла csv, иначе он сохраняется в директории проекта )
+- Пример Get Report: Метод получения отчёта по одобренным(accepted=true) услугам за определённый период (Если делать запрос через url браузера, то будет видна загрузка файла csv, иначе он сохраняется в директории проекта )
     ```
       curl -X GET  'http://localhost:8080/report?from=2022-10-29&to=2022-10-31'
 
     ```
   Ответ:
     ```
-      [{"idServise":"1","totalSumm":555}]
+      [{"idServise":"1","totalSumm":500}]
     ```
 - Проект структурирован на основе [go standarts](https://github.com/golang-standards/project-layout)
 

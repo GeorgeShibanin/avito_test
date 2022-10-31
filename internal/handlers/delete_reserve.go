@@ -15,7 +15,7 @@ func (h *HTTPHandler) HandleCancelReserve(rw http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	id_servise := r.URL.Query().Get("id_servise")
+	id_servise := r.URL.Query().Get("id_service")
 	if id_servise == "" {
 		http.Error(rw, "invalid query params", http.StatusBadRequest)
 		return

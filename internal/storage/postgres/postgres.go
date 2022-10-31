@@ -209,7 +209,6 @@ func (s *StoragePostgres) GetReport(ctx context.Context, date1 storage.Date, dat
 	}
 	for rows.Next() {
 		err = rows.Scan(&deals.IdServise, &deals.TotalSumm)
-		log.Println(deals)
 		allDeals = append(allDeals, *deals)
 	}
 	return allDeals, nil
