@@ -1,6 +1,7 @@
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS report;
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS users;
+
 
 CREATE TABLE users  (
      id text primary key,
@@ -23,7 +24,7 @@ CREATE TABLE report (
      id_order text,
      amount int,
      accepted_at date,
-     primary key (id_service),
+     primary key (id_user, id_service, id_order),
      foreign key (id_order) references orders (id_order)
 );
 

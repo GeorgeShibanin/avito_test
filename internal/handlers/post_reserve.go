@@ -15,19 +15,22 @@ func (h *HTTPHandler) HandlePostReserve(rw http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	reserve, amount, err := h.storage.PutReserve(r.Context(), storage.Id(reserveInfo.Id), storage.IdServise(reserveInfo.IdServise),
+	reserve, amount, err := h.storage.PutReserve(r.Context(), storage.Id(reserveInfo.Id), storage.IdService(reserveInfo.IdService),
 		storage.IdOrder(reserveInfo.IdOrder), storage.Amout(reserveInfo.Amount))
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	response := ResponseOrder{
 		Id:        reserve.IdUser,
 		Balance:   amount,
-		IdServise: reserve.IdServise,
+		IdService: reserve.IdService,
 		IdOrder:   reserve.IdOrder,
 		Amount:    reserve.Amount,
+		Accepted:  reserve.Accepted,
 	}
+
 	rawResponse, err := json.Marshal(response)
 	if err != nil {
 		err = errors.Wrap(err, "can't marshall response")

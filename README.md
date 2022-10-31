@@ -6,7 +6,14 @@ docker-compose up --build
 ```
 ## Описание:
 - В качестве роутера используется [gorilla/mux](github.com/gorilla/mux)
-- Пример POST balance
+- Проект запускается на порту `:8080`
+- В качестве хранилища используется база PostgreSQL
+    + База данных содержит 3 таблицы `users`, `orders`, `report`
+    + Структуру таблиц можно посмотреть в файле инициализации `_sql/db.sql`
+- `script/wait-for-it.sh` - скрипт для ожидания доступности TCP хоста с портом [wait-for-it](https://github.com/vishnubob/wait-for-it)
+
+## Описание API:
+- Пример POST: Добавляет нового user, или увеличивае/уменьшает balance user'a
   ```
     curl -d '{"id": "George", "balance": 1000}' -X POST http://localhost:8080/addbalance
 
@@ -15,7 +22,7 @@ docker-compose up --build
   ```
     {"id":"George","balance":1000}
   ```
-- Пример GET balance
+- Пример GET: Получает текущий баланс user'a
     ```
        curl -X GET  http://localhost:8080/balance?id=George
     ```
@@ -24,9 +31,20 @@ docker-compose up --build
       {"id":"George","balance":1000}
     ```
 
-- Пример Post reserve
+- Пример Post Reserve: Метод резервирования средств пользователя, принимает на вход id пользователя, id услуги, id заказа и количество денег. Условие: id заказа должно быть уникальным, а так же средств на счету пользователя должно хватать для сделки. Так же после резервирования баланса пользователя, 
+деньги списываются с его счёта, то есть они зарезервированны до тех пор пока сделка не состоится или не отменится
     ```
       curl -d '{"id": "George", "id_service": "1", "id_order": "1", "amount": 500}' -X POST http://localhost:8080/reserve
+
+    ```
+  Ответ:
+    ```
+      {"id":"George","balance":1500,"id_servise":"1","id_order":"1","reserved_balance":500}
+    ```
+
+- Пример Patch Accept Reserve: Метод признания выручки/зарезервированного баланса(Совершения сделки). После признания поле accepted в таблице orders меняется на true и сделка добавляется в таблицу для отчётов
+    ```
+      curl -d '{"id": "George", "id_service": "1", "id_order": "1", "amount": 500}' -X PATCH http://localhost:8080/reserve/accept
 
     ```
   Ответ:
@@ -34,17 +52,7 @@ docker-compose up --build
       {"id":"George","balance":1500,"id_servise":"","id_order":"1","reserved_balance":500}
     ```
 
-- Пример Patch reserve
-    ```
-      curl -d '{"id": "George", "id_service": "1", "id_order": "1", "amount": 500}' -X POST http://localhost:8080/reserve
-
-    ```
-  Ответ:
-    ```
-      {"id":"George","balance":1500,"id_servise":"","id_order":"1","reserved_balance":500}
-    ```
-
-- Пример Delete reserve
+- Пример Delete reserve: Метод отмены сделки(удаления из таблицы) и зачисления средств обратно на счёт пользователя. Если сделка уже accepted=true, то такую сделку нельзя удалить
     ```
       curl -X DELETE http://localhost:8080/reserve/cancel?id=George&id_servise=1&id_order=2&amount=500
 
@@ -53,38 +61,24 @@ docker-compose up --build
     ```
       {"id":"George","balance":1500,"id_servise":"","id_order":"1","reserved_balance":500}
     ```
-  
-- Реализован ratelimiter с помощью Redis. Ограничение на количество запросов регулируется в этом куске кода
+
+- Пример Get Report: Метод получения отчёта по услугам за определённый период (Если делать запрос через url браузера, то будет видна загрузка файла csv, иначе он сохраняется в директории проекта )
     ```
-    func NewHTTPHandler(storage storage.Storage, limiterFactory *ratelimit.Factory) *HTTPHandler {
-        return &HTTPHandler{
-            storage: storage,
-            // POST 10 действия в 10 сек
-            postLimit: limiterFactory.NewLimiter("post_url", 10*time.Second, 10),
-            // GET 20 действий в минуту
-            getLimit: limiterFactory.NewLimiter("get_url", 1*time.Minute, 20),
-        }
-   }
-   ```
-- Реализованы три типа хранения данных, которые выбираются при запуске приложения через переменную окружения STORAGE_MODE=
-    - **in_memory**, где пары (shor_url, original_url) хранятся в структуре вида
-      ```
-      type inMemoryStore struct {
-          mutex sync.RWMutex
-          store map[storage.ShortedURL]storage.URL
-      }
-      ```
+      curl -X GET  'http://localhost:8080/report?from=2022-10-29&to=2022-10-31'
+
+    ```
+  Ответ:
+    ```
+      [{"idServise":"1","totalSumm":555}]
+    ```
+- Тип Хранилища
     - **postgres**, где пары (shor_url, original_url) хранятся в базе данных. База данных содержит одну таблицу links с полями id в качестве ключа и поле url
-    - **redis**, где пары (shor_url, original_url) хранятся в базе данных с подключение к redis server,
-      который реализует cache и позволяет ограничивать нагрузку на сервис.
-        - Данные добавляются в cache при добавлении новой ссылки в базу,
-          а так же данные добавляются в cache при get запросе, при условии что этой ссылки нет в cache.
-        - Ограничение нагрузки на сервер, просиходит путём ограничения количества запросов. Запрос перестаёт обрабатываться
-          если уже было много запросов этого типа с этим индентификатором
-        - Значение времени ограничения количество запросов специально завышены, для наглядности работы
-        - (cache и ratelimiter реализован на основе курса [Дизайн систем](http://wiki.cs.hse.ru/%D0%94%D0%B8%D0%B7%D0%B0%D0%B9%D0%BD_%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC_21/22) ФКН НИУ ВШЭ)
-- Unit-тесты(mocking)
-    - TestGetURL
-    - TestPutURL
-- проект структурирован на освнове [go standarts](https://github.com/golang-standards/project-layout)
-    
+- Проект структурирован на основе [go standarts](https://github.com/golang-standards/project-layout)
+
+- Реализованы методы из **Основное задание(минимум)**, так же реализован сценарий разрезервирования денег, то есть в случае если услугу приенить не удалось то оправляется DELETE запрос для отмены резервирования и зачисления денег обратно на баланс пользователя.
+- Так же выполнено Доп. задание 1.
+
+- Дальнейшие действия на неделю
+  - покрытие кода тестами
+  - написание swagger файла для API
+  - Доп. задание 2

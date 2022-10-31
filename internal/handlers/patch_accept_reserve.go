@@ -15,7 +15,7 @@ func (h *HTTPHandler) HandlePatchAcceptReserve(rw http.ResponseWriter, r *http.R
 		return
 	}
 
-	reserve, err := h.storage.PatchReserve(r.Context(), storage.Id(reserveInfo.Id), storage.IdServise(reserveInfo.IdServise),
+	reserve, err := h.storage.PatchReserve(r.Context(), storage.Id(reserveInfo.Id), storage.IdService(reserveInfo.IdServise),
 		storage.IdOrder(reserveInfo.IdOrder), storage.Amout(reserveInfo.Amount))
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
@@ -23,7 +23,7 @@ func (h *HTTPHandler) HandlePatchAcceptReserve(rw http.ResponseWriter, r *http.R
 	}
 	response := ResponseAcceptedOrder{
 		Id:        reserve.IdUser,
-		IdServise: reserve.IdServise,
+		IdServise: reserve.IdService,
 		IdOrder:   reserve.IdOrder,
 		Amount:    reserve.Amount,
 		Accepted:  true,

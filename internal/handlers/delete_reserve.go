@@ -37,7 +37,7 @@ func (h *HTTPHandler) HandleCancelReserve(rw http.ResponseWriter, r *http.Reques
 		http.Error(rw, "invalid query params", http.StatusBadRequest)
 		return
 	}
-	reserve, err := h.storage.DeleteReserve(r.Context(), storage.Id(id), storage.IdServise(id_servise),
+	reserve, err := h.storage.DeleteReserve(r.Context(), storage.Id(id), storage.IdService(id_servise),
 		storage.IdOrder(id_order), storage.Amout(amount))
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)

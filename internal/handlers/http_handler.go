@@ -26,28 +26,28 @@ type ResponseUserInfo struct {
 
 type PostOrder struct {
 	Id        string `json:"id"`
-	IdServise string `json:"id_servise"`
+	IdService string `json:"id_service"`
 	IdOrder   string `json:"id_order"`
 	Amount    int64  `json:"amount"`
 }
 
 type AcceptOrder struct {
 	Id        string `json:"id"`
-	IdServise string `json:"id_servise"`
+	IdServise string `json:"id_service"`
 	IdOrder   string `json:"id_order"`
 	Amount    int64  `json:"amount"`
 }
 
 type CancelOrder struct {
 	Id        string `json:"id"`
-	IdServise string `json:"id_servise"`
+	IdServise string `json:"id_service"`
 	IdOrder   string `json:"id_order"`
 	Amount    int64  `json:"amount"`
 }
 
 type ResponseAcceptedOrder struct {
 	Id        string `json:"id"`
-	IdServise string `json:"id_servise"`
+	IdServise string `json:"id_service"`
 	IdOrder   string `json:"id_order"`
 	Amount    int64  `json:"reserved_balance"`
 	Accepted  bool   `json:"accepted"`
@@ -56,7 +56,8 @@ type ResponseAcceptedOrder struct {
 type ResponseOrder struct {
 	Id        string `json:"id"`
 	Balance   int64  `json:"balance"`
-	IdServise string `json:"id_servise"`
+	IdService string `json:"id_service"`
 	IdOrder   string `json:"id_order"`
-	Amount    int64  `json:"reserved_balance"`
+	Amount    int64  `json:"amount"`
+	Accepted  bool   `json:"accepted"`
 }

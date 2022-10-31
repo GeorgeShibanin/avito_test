@@ -19,7 +19,7 @@ var (
 
 type Id string
 type Balance int64
-type IdServise string
+type IdService string
 type IdOrder string
 type Amout int64
 type Date time.Time
@@ -31,7 +31,7 @@ type UserInfo struct {
 
 type Order struct {
 	IdUser    string `json:"id_user"`
-	IdServise string `json:"id_servise"`
+	IdService string `json:"id_service"`
 	IdOrder   string `json:"id_order"`
 	Amount    int64  `json:"amount"`
 	Accepted  bool   `json:"accepted"`
@@ -46,9 +46,9 @@ type Storage interface {
 	PutBalance(ctx context.Context, id Id, balance Balance) (UserInfo, error)
 	GetBalance(ctx context.Context, id Id) (UserInfo, error)
 
-	PutReserve(ctx context.Context, id Id, servise IdServise, order IdOrder, amout Amout) (Order, int64, error)
-	PatchReserve(ctx context.Context, id Id, servise IdServise, order IdOrder, amout Amout) (Order, error)
-	DeleteReserve(ctx context.Context, id Id, servise IdServise, order IdOrder, amout Amout) (string, error)
+	PutReserve(ctx context.Context, id Id, servise IdService, order IdOrder, amout Amout) (Order, int64, error)
+	PatchReserve(ctx context.Context, id Id, servise IdService, order IdOrder, amout Amout) (Order, error)
+	DeleteReserve(ctx context.Context, id Id, servise IdService, order IdOrder, amout Amout) (string, error)
 
 	GetReport(ctx context.Context, date1 Date, date2 Date) ([]Deals, error)
 }

@@ -105,7 +105,7 @@ func (s *StoragePostgres) GetBalance(ctx context.Context, id storage.Id) (storag
 	return *userInfo, nil
 }
 
-func (s *StoragePostgres) PutReserve(ctx context.Context, id storage.Id, service storage.IdServise, order storage.IdOrder, amout storage.Amout) (storage.Order, int64, error) {
+func (s *StoragePostgres) PutReserve(ctx context.Context, id storage.Id, service storage.IdService, order storage.IdOrder, amout storage.Amout) (storage.Order, int64, error) {
 	tx, err := s.conn.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return storage.Order{}, 0, errors.Wrap(err, "can't create tx")
@@ -141,9 +141,8 @@ func (s *StoragePostgres) PutReserve(ctx context.Context, id storage.Id, service
 	//Insert New Order
 	newReserve := &storage.Order{}
 	err = tx.QueryRow(ctx, InsertNewReserve, id, service, order, amout, false).
-		Scan(&newReserve.IdUser, &newReserve.IdServise, &newReserve.IdOrder, &newReserve.Amount, &newReserve.Accepted)
+		Scan(&newReserve.IdUser, &newReserve.IdService, &newReserve.IdOrder, &newReserve.Amount, &newReserve.Accepted)
 	if err != nil {
-		log.Println("LOL")
 		return storage.Order{}, 0, err
 	}
 
@@ -155,7 +154,7 @@ func (s *StoragePostgres) PutReserve(ctx context.Context, id storage.Id, service
 	return *newReserve, newBalance, nil
 }
 
-func (s *StoragePostgres) PatchReserve(ctx context.Context, id storage.Id, service storage.IdServise, order storage.IdOrder, amount storage.Amout) (storage.Order, error) {
+func (s *StoragePostgres) PatchReserve(ctx context.Context, id storage.Id, service storage.IdService, order storage.IdOrder, amount storage.Amout) (storage.Order, error) {
 	tx, err := s.conn.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return storage.Order{}, errors.Wrap(err, "can't create tx")
@@ -170,7 +169,7 @@ func (s *StoragePostgres) PatchReserve(ctx context.Context, id storage.Id, servi
 	reserve := &storage.Order{}
 	//Update Reserve Status
 	err = tx.QueryRow(ctx, UpdateReserveAcceptance, true, id, service, order, amount).
-		Scan(&reserve.IdUser, &reserve.IdServise, &reserve.IdOrder, &reserve.Amount, &reserve.Accepted)
+		Scan(&reserve.IdUser, &reserve.IdService, &reserve.IdOrder, &reserve.Amount, &reserve.Accepted)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return storage.Order{}, fmt.Errorf("Reserve not exist with such params - %w", storage.StorageError)
@@ -216,7 +215,7 @@ func (s *StoragePostgres) GetReport(ctx context.Context, date1 storage.Date, dat
 	return allDeals, nil
 }
 
-func (s *StoragePostgres) DeleteReserve(ctx context.Context, id storage.Id, service storage.IdServise, order storage.IdOrder, amount storage.Amout) (string, error) {
+func (s *StoragePostgres) DeleteReserve(ctx context.Context, id storage.Id, service storage.IdService, order storage.IdOrder, amount storage.Amout) (string, error) {
 	tx, err := s.conn.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return " storage.Item{}", errors.Wrap(err, "can't create tx")
