@@ -181,7 +181,7 @@ func (s *StoragePostgres) PatchReserve(ctx context.Context, id storage.Id, servi
 	userId := storage.Id("")
 	err = tx.QueryRow(ctx, InsertReport, id, service, order, amount, time.Now().UTC().Format(time.RFC3339)).Scan(&userId)
 	if err != nil {
-		return storage.Order{}, err
+		return storage.Order{}, storage.ErrAlreadyAccepted
 	}
 	return *reserve, nil
 }
